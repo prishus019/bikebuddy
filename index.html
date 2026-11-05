@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F5F6F1" id="meta-theme-color">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BikeBuddy">
+<title>BikeBuddy — Ride when you want</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="images/logo.svg">
+<link rel="apple-touch-icon" href="images/icon-192.png">
+<script>
+/* Ilapat agad ang dark mode ng naka-login na account bago mag-paint (iwas flash). */
+(function(){try{
+  var s = JSON.parse(localStorage.getItem('bb_session') || 'null'); if(!s) return;
+  var u = (JSON.parse(localStorage.getItem('bb_users') || '[]')).find(function(x){ return x.id === s.userId; });
+  if(u && u.settings && u.settings.theme === 'dark') document.documentElement.setAttribute('data-theme','dark');
+}catch(e){}})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============ SPLASH / LOADING SCREEN ============ -->
+<div id="splash" class="splash" role="status" aria-live="polite">
+  <div class="splash-streaks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="splash-center">
+    <div class="splash-logo"><svg class="logo-svg" viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><linearGradient id="bbG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFC145"/><stop offset="1" stop-color="#1FA97D"/></linearGradient>
+<linearGradient id="bbF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD36E"/><stop offset="1" stop-color="#FFB11F"/></linearGradient></defs><g class="speed" stroke="#FFC145" stroke-width="5" stroke-linecap="round" fill="none">
+<path d="M4 82h16" opacity=".95"/><path d="M0 104h22" opacity=".6"/><path d="M6 126h14" opacity=".95"/></g>
+<path d="M120 8L212 58V142L120 192L28 142V58Z" fill="#10131A" stroke="url(#bbG)" stroke-width="7" stroke-linejoin="round"/>
+<path d="M120 22L200 65.5V134.5L120 178L40 134.5V65.5Z" fill="none" stroke="#fff" stroke-opacity=".10" stroke-width="2"/>
+<path d="M126 26L105 54H118L111 69L136 41H123Z" fill="#1FA97D"/>
+<g transform="translate(78 118)"><g class="spin">
+<circle r="25" fill="none" stroke="#F5F6F1" stroke-width="6"/>
+<g stroke="#F5F6F1" stroke-opacity=".6" stroke-width="1.8" stroke-linecap="round"><path d="M-22 0H22M0 -22V22M-15.5 -15.5L15.5 15.5M15.5 -15.5L-15.5 15.5"/></g>
+<circle r="4.5" fill="#FFC145"/></g></g><g transform="translate(162 118)"><g class="spin">
+<circle r="25" fill="none" stroke="#F5F6F1" stroke-width="6"/>
+<g stroke="#F5F6F1" stroke-opacity=".6" stroke-width="1.8" stroke-linecap="round"><path d="M-22 0H22M0 -22V22M-15.5 -15.5L15.5 15.5M15.5 -15.5L-15.5 15.5"/></g>
+<circle r="4.5" fill="#FFC145"/></g></g>
+<g fill="none" stroke="url(#bbF)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+<path d="M78 118L118 118L106 84Z"/><path d="M106 84H146L118 118"/><path d="M146 84L162 118"/>
+<path d="M144 74H157"/><path d="M146 84L144 74"/><path d="M96 78H114"/></g>
+<circle cx="118" cy="118" r="7" fill="#10131A" stroke="#FFC145" stroke-width="3"/></svg></div>
+    <div class="splash-word" aria-label="BikeBuddy">
+      <span class="sw-bike"><b style="--i:0">B</b><b style="--i:1">I</b><b style="--i:2">K</b><b style="--i:3">E</b></span><span class="sw-buddy"><b style="--i:4">B</b><b style="--i:5">U</b><b style="--i:6">D</b><b style="--i:7">D</b><b style="--i:8">Y</b></span>
+    </div>
+    <p class="splash-tag" data-i18n="splash.tag">RIDE WHEN YOU WANT</p>
+    <div class="splash-bar" aria-hidden="true"><span></span></div>
+    <p class="splash-status" id="splash-status"></p>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<!-- ============ LANDING ============ -->
+<section id="view-landing" class="view active">
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="images/logo.svg" alt="">
+      <span class="brand-name">BikeBuddy</span>
+    </div>
+    <button class="btn btn-outline" data-goto-auth="client" data-i18n="nav.login">Log in</button>
+  </header>
+
+  <div class="hero">
+    <div class="hero-copy">
+      <p class="hero-kicker" data-i18n="hero.kicker">Two wheels, zero waiting</p>
+      <h1 class="hero-title" data-i18n-html="hero.title">Ride when<br>you want.</h1>
+      <p class="hero-sub" data-i18n="hero.sub">Grab a bike near you, pick your hours, pay however's easy — GCash or cash — and roll out. Return it when you're done, that's it.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" data-goto-auth="client-register" data-i18n="hero.create">Create an account</button>
+        <button class="btn btn-ghost" data-goto-auth="client" data-i18n="hero.have">I already ride with BikeBuddy</button>
+      </div>
+      <button class="admin-link" data-goto-auth="admin" data-i18n="hero.admin">Managing a fleet? Admin sign in →</button>
+    </div>
+    <div class="hero-art">
+      <div class="hero-blob" aria-hidden="true"></div>
+      <div class="hero-photo-frame">
+        <img class="hero-photo" src="images/hero-riders.png" alt="A group of friends cycling on a tree-lined road" data-i18n-alt="hero.imgAlt">
+        <div class="floating-card">
+          <span class="floating-emoji">🚴</span>
+          <div>
+            <strong id="stat-available-floating">—</strong>
+            <span data-i18n="hero.floating">bikes ready to ride now</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stat-strip">
+    <div class="stat"><strong id="stat-bikes">—</strong><span data-i18n="stat.fleet">bikes in the fleet</span></div>
+    <div class="stat"><strong id="stat-available">—</strong><span data-i18n="stat.ready">ready to ride now</span></div>
+    <div class="stat"><strong>₱/hr</strong><span data-i18n="stat.price">simple hourly pricing</span></div>
+    <div class="stat"><strong>GCash</strong><span data-i18n="stat.gcash">or pay with cash</span></div>
+  </div>
+</section>
+
+<!-- ============ AUTH ============ -->
+<section id="view-auth" class="view">
+  <div class="auth-wrap">
+    <button class="back-link" data-goto="view-landing" data-i18n="auth.back">← Back</button>
+    <div class="auth-card">
+      <div class="role-toggle">
+        <button class="role-btn active" data-role="client" data-i18n="role.client">Client</button>
+        <button class="role-btn" data-role="admin" data-i18n="role.admin">Admin</button>
+      </div>
+
+      <div class="mode-toggle" id="client-mode-toggle">
+        <button class="mode-btn active" data-mode="login" data-i18n="mode.login">Log in</button>
+        <button class="mode-btn" data-mode="register" data-i18n="mode.register">Register</button>
+      </div>
+
+      <!-- CLIENT LOGIN -->
+      <form id="form-client-login" class="auth-form">
+        <h2 data-i18n="auth.welcomeBack">Welcome back</h2>
+        <p class="auth-hint" data-i18n="auth.loginHint">Log in to find a bike and go.</p>
+        <label><span data-i18n="label.identifier">Email or username</span>
+          <input type="text" name="identifier" required autocomplete="username">
+        </label>
+        <label><span data-i18n="label.password">Password</span>
+          <input type="password" name="password" required autocomplete="current-password">
+        </label>
+        <button type="submit" class="btn btn-primary btn-block" data-i18n="btn.login">Log in</button>
+        <p class="auth-switch"><span data-i18n="auth.noAccount">No account yet?</span> <a href="#" data-mode="register" data-i18n="auth.registerHere">Register here</a></p>
+        <p class="auth-demo" data-i18n="auth.demoCustomer">Demo customer — customer@bikebuddy.ph / customer123</p>
+      </form>
+
+      <!-- CLIENT REGISTER -->
+      <form id="form-client-register" class="auth-form hidden">
+        <h2 data-i18n="auth.join">Join BikeBuddy</h2>
+        <p class="auth-hint" data-i18n="auth.joinHint">Takes less than a minute.</p>
+        <label><span data-i18n="label.fullName">Full name</span>
+          <input type="text" name="name" required autocomplete="name">
+        </label>
+        <label><span data-i18n="label.email">Email</span>
+          <input type="email" name="email" required autocomplete="email">
+        </label>
+        <label><span data-i18n="label.contact">Contact number</span>
+          <input type="tel" name="contact" placeholder="09XX XXX XXXX" required autocomplete="tel">
+        </label>
+        <label><span data-i18n="label.address">Address</span>
+          <input type="text" name="address" required autocomplete="street-address">
+        </label>
+        <label><span data-i18n="label.password">Password</span>
+          <input type="password" name="password" minlength="4" required autocomplete="new-password">
+        </label>
+        <button type="submit" class="btn btn-primary btn-block" data-i18n="btn.createAccount">Create account</button>
+        <p class="auth-switch"><span data-i18n="auth.haveAccount">Already registered?</span> <a href="#" data-mode="login" data-i18n="auth.loginLink">Log in</a></p>
+      </form>
+
+      <!-- ADMIN LOGIN -->
+      <form id="form-admin-login" class="auth-form hidden">
+        <h2 data-i18n="auth.adminTitle">Admin sign in</h2>
+        <p class="auth-hint" data-i18n="auth.adminHint">Fleet management access only.</p>
+        <label><span data-i18n="label.adminEmail">Admin email</span>
+          <input type="text" name="identifier" required autocomplete="username">
+        </label>
+        <label><span data-i18n="label.password">Password</span>
+          <input type="password" name="password" required autocomplete="current-password">
+        </label>
+        <button type="submit" class="btn btn-primary btn-block" data-i18n="btn.login">Log in</button>
+        <p class="auth-demo" data-i18n="auth.demoAdmin">Demo admin — admin@bikebuddy.ph / admin123</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CLIENT APP ============ -->
+<section id="view-client" class="view">
+  <header class="app-top">
+    <div class="brand"><img class="brand-logo" src="images/logo.svg" alt=""><span class="brand-name">BikeBuddy</span></div>
+    <nav class="app-nav">
+      <button class="nav-btn active" data-panel="client-home"><span class="nav-ico">🏠</span><span data-i18n="nav.home">Home</span></button>
+      <button class="nav-btn" data-panel="client-rentals"><span class="nav-ico">🚲</span><span data-i18n="nav.rental">My Rental</span></button>
+      <button class="nav-btn" data-panel="client-history"><span class="nav-ico">📜</span><span data-i18n="nav.history">History</span></button>
+      <button class="nav-btn" data-panel="client-profile"><span class="nav-ico">👤</span><span data-i18n="nav.profile">Profile</span></button>
+      <button class="nav-btn" data-panel="client-settings"><span class="nav-ico">⚙️</span><span data-i18n="nav.settings">Settings</span></button>
+    </nav>
+    <div class="top-actions">
+      <div class="bell-wrap">
+        <button class="bell-btn" type="button" aria-haspopup="true" aria-expanded="false" data-i18n-aria="notif.title" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="bell-badge hidden">0</span>
+        </button>
+        <div class="notif-panel hidden" role="dialog">
+          <div class="notif-head">
+            <h4 data-i18n="notif.title">Notifications</h4>
+            <div class="notif-actions">
+              <button type="button" class="notif-link" data-notif-markread data-i18n="notif.markRead">Mark all as read</button>
+              <button type="button" class="notif-link" data-notif-clear data-i18n="notif.clear">Clear all</button>
+            </div>
+          </div>
+          <div class="notif-list"></div>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm" id="client-logout" data-i18n="btn.logout">Log out</button>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <div class="panel active" id="panel-client-home">
+      <div class="panel-head">
+        <h2 data-i18n="home.title">Bikes near you</h2>
+        <p data-i18n="home.sub">Pick a ride, set your hours, confirm — that's the whole thing.</p>
+      </div>
+      <div class="bike-grid" id="bike-grid"></div>
+    </div>
+
+    <div class="panel" id="panel-client-rentals">
+      <div class="panel-head">
+        <h2 data-i18n="rental.title">Your active rental</h2>
+        <p data-i18n="rental.sub">Keep an eye on your time. Return whenever you're back.</p>
+      </div>
+      <div id="active-rental-area"></div>
+    </div>
+
+    <div class="panel" id="panel-client-history">
+      <div class="panel-head">
+        <h2 data-i18n="history.title">Rental history</h2>
+        <p data-i18n="history.sub">Every ride you've completed with BikeBuddy.</p>
+      </div>
+      <div id="history-area"></div>
+    </div>
+
+    <div class="panel" id="panel-client-profile">
+      <div class="panel-head">
+        <h2 data-i18n="profile.title">My profile</h2>
+        <p data-i18n="profile.sub">Keep your details current so we can reach you.</p>
+      </div>
+      <form id="form-profile" class="profile-form card">
+        <label><span data-i18n="label.fullName">Full name</span><input type="text" name="name" required></label>
+        <label><span data-i18n="label.contact">Contact number</span><input type="tel" name="contact" required></label>
+        <label><span data-i18n="label.address">Address</span><input type="text" name="address" required></label>
+        <label><span data-i18n="label.newPassword">New password</span> <span class="muted" data-i18n="label.keepPassword">(leave blank to keep current)</span><input type="password" name="password" placeholder="••••••••" autocomplete="new-password"></label>
+        <button type="submit" class="btn btn-primary" data-i18n="btn.saveChanges">Save changes</button>
+      </form>
+    </div>
+
+    <div class="panel" id="panel-client-settings">
+      <div class="panel-head">
+        <h2 data-i18n="settings.title">Settings</h2>
+        <p data-i18n="settings.sub">Make BikeBuddy feel like yours.</p>
+      </div>
+      <div class="settings-grid">
+        <section class="card setting-card">
+          <h3 data-i18n="settings.appearance">Appearance</h3>
+          <p class="setting-hint" data-i18n="settings.appearanceHint">Choose how BikeBuddy looks on your account.</p>
+          <div class="seg" role="group">
+            <button type="button" class="seg-btn" data-set-theme="light"><span class="seg-ico">☀️</span><span data-i18n="settings.light">Light mode</span></button>
+            <button type="button" class="seg-btn" data-set-theme="dark"><span class="seg-ico">🌙</span><span data-i18n="settings.dark">Dark mode</span></button>
+          </div>
+        </section>
+        <section class="card setting-card">
+          <h3 data-i18n="settings.language">Language</h3>
+          <p class="setting-hint" data-i18n="settings.languageHint">Choose the language you want to read BikeBuddy in.</p>
+          <div class="seg" role="group">
+            <button type="button" class="seg-btn" data-set-lang="en"><span class="seg-ico seg-code">EN</span><span>English</span></button>
+            <button type="button" class="seg-btn" data-set-lang="tl"><span class="seg-ico seg-code">TL</span><span>Tagalog</span></button>
+          </div>
+        </section>
+        <section class="card setting-card setting-note">
+          <h3>🔒 <span data-i18n="settings.account">Only for this account</span></h3>
+          <p class="setting-hint" data-i18n="settings.accountHint">These settings are saved to your account only.</p>
+        </section>
+        <section class="card setting-card">
+          <h3>📱 <span data-i18n="settings.phone">Use it on your phone</span></h3>
+          <p class="setting-hint" data-i18n="settings.phoneHint">Open this site in your phone's browser, then tap Install app below.</p>
+          <button type="button" class="btn btn-primary install-btn hidden" data-i18n="btn.install">Install app</button>
+        </section>
+      </div>
+    </div>
+
+  </main>
+</section>
+
+<!-- ============ ADMIN APP ============ -->
+<section id="view-admin" class="view">
+  <header class="app-top admin-top">
+    <div class="brand"><img class="brand-logo" src="images/logo.svg" alt=""><span class="brand-name">BikeBuddy <em>Admin</em></span></div>
+    <nav class="app-nav">
+      <button class="nav-btn active" data-panel="admin-dashboard"><span class="nav-ico">📊</span><span data-i18n="nav.dashboard">Dashboard</span></button>
+      <button class="nav-btn" data-panel="admin-bikes"><span class="nav-ico">🚲</span><span data-i18n="nav.bikes">Bikes</span></button>
+      <button class="nav-btn" data-panel="admin-rentals"><span class="nav-ico">📋</span><span data-i18n="nav.rentals">Rentals</span></button>
+      <button class="nav-btn" data-panel="admin-users"><span class="nav-ico">👥</span><span data-i18n="nav.users">Users</span></button>
+      <button class="nav-btn" data-panel="admin-settings"><span class="nav-ico">⚙️</span><span data-i18n="nav.settings">Settings</span></button>
+    </nav>
+    <div class="top-actions">
+      <div class="bell-wrap">
+        <button class="bell-btn" type="button" aria-haspopup="true" aria-expanded="false" data-i18n-aria="notif.title" aria-label="Notifications">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span class="bell-badge hidden">0</span>
+        </button>
+        <div class="notif-panel hidden" role="dialog">
+          <div class="notif-head">
+            <h4 data-i18n="notif.title">Notifications</h4>
+            <div class="notif-actions">
+              <button type="button" class="notif-link" data-notif-markread data-i18n="notif.markRead">Mark all as read</button>
+              <button type="button" class="notif-link" data-notif-clear data-i18n="notif.clear">Clear all</button>
+            </div>
+          </div>
+          <div class="notif-list"></div>
+        </div>
+      </div>
+      <button class="btn btn-outline btn-sm" id="admin-logout" data-i18n="btn.logout">Log out</button>
+    </div>
+  </header>
+
+  <main class="app-main">
+
+    <div class="panel active" id="panel-admin-dashboard">
+      <div class="panel-head"><h2 data-i18n="dash.title">Overview</h2><p data-i18n="dash.sub">How the fleet looks right now.</p></div>
+      <div class="dash-grid">
+        <div class="dash-card"><span class="dash-num" id="dash-total-bikes">0</span><span class="dash-label" data-i18n="dash.totalBikes">Total bikes</span></div>
+        <div class="dash-card"><span class="dash-num" id="dash-available-bikes">0</span><span class="dash-label" data-i18n="dash.available">Available now</span></div>
+        <div class="dash-card"><span class="dash-num" id="dash-active-rentals">0</span><span class="dash-label" data-i18n="dash.active">Active rentals</span></div>
+        <div class="dash-card"><span class="dash-num" id="dash-total-users">0</span><span class="dash-label" data-i18n="dash.users">Registered users</span></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-admin-bikes">
+      <div class="panel-head panel-head-row">
+        <div><h2 data-i18n="abikes.title">Manage bikes</h2><p data-i18n="abikes.sub">Add new bikes, update details, or retire one.</p></div>
+        <button class="btn btn-primary" id="btn-add-bike" data-i18n="btn.addBike">+ Add bike</button>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="table-bikes"><thead>
+          <tr><th></th><th data-i18n="th.name">Name</th><th data-i18n="th.type">Type</th><th data-i18n="th.price">Price / hr</th><th data-i18n="th.status">Status</th><th></th></tr>
+        </thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-admin-rentals">
+      <div class="panel-head"><h2 data-i18n="arentals.title">Manage rentals</h2><p data-i18n="arentals.sub">Every rental, past and present.</p></div>
+      <div class="table-wrap">
+        <table class="data-table" id="table-rentals"><thead>
+          <tr><th data-i18n="th.rider">Rider</th><th data-i18n="th.bike">Bike</th><th data-i18n="th.start">Start</th><th data-i18n="th.duration">Duration</th><th data-i18n="th.payment">Payment</th><th data-i18n="th.status">Status</th><th></th></tr>
+        </thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-admin-users">
+      <div class="panel-head"><h2 data-i18n="ausers.title">Registered users</h2><p data-i18n="ausers.sub">Everyone who's signed up to ride.</p></div>
+      <div class="table-wrap">
+        <table class="data-table" id="table-users"><thead>
+          <tr><th data-i18n="th.name">Name</th><th data-i18n="th.email">Email</th><th data-i18n="th.contact">Contact</th><th data-i18n="th.address">Address</th><th data-i18n="th.joined">Joined</th></tr>
+        </thead><tbody></tbody></table>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-admin-settings">
+      <div class="panel-head">
+        <h2 data-i18n="settings.title">Settings</h2>
+        <p data-i18n="settings.sub">Make BikeBuddy feel like yours.</p>
+      </div>
+      <div class="settings-grid">
+        <section class="card setting-card">
+          <h3 data-i18n="settings.appearance">Appearance</h3>
+          <p class="setting-hint" data-i18n="settings.appearanceHint">Choose how BikeBuddy looks on your account.</p>
+          <div class="seg" role="group">
+            <button type="button" class="seg-btn" data-set-theme="light"><span class="seg-ico">☀️</span><span data-i18n="settings.light">Light mode</span></button>
+            <button type="button" class="seg-btn" data-set-theme="dark"><span class="seg-ico">🌙</span><span data-i18n="settings.dark">Dark mode</span></button>
+          </div>
+        </section>
+        <section class="card setting-card">
+          <h3 data-i18n="settings.language">Language</h3>
+          <p class="setting-hint" data-i18n="settings.languageHint">Choose the language you want to read BikeBuddy in.</p>
+          <div class="seg" role="group">
+            <button type="button" class="seg-btn" data-set-lang="en"><span class="seg-ico seg-code">EN</span><span>English</span></button>
+            <button type="button" class="seg-btn" data-set-lang="tl"><span class="seg-ico seg-code">TL</span><span>Tagalog</span></button>
+          </div>
+        </section>
+        <section class="card setting-card setting-note">
+          <h3>🔒 <span data-i18n="settings.account">Only for this account</span></h3>
+          <p class="setting-hint" data-i18n="settings.accountHint">These settings are saved to your account only.</p>
+        </section>
+        <section class="card setting-card">
+          <h3>📱 <span data-i18n="settings.phone">Use it on your phone</span></h3>
+          <p class="setting-hint" data-i18n="settings.phoneHint">Open this site in your phone's browser, then tap Install app below.</p>
+          <button type="button" class="btn btn-primary install-btn hidden" data-i18n="btn.install">Install app</button>
+        </section>
+      </div>
+    </div>
+
+  </main>
+</section>
+
+<!-- ============ MODAL: RENT ============ -->
+<div class="modal-backdrop" id="modal-rent">
+  <div class="modal">
+    <button class="modal-close" data-close-modal="modal-rent" aria-label="Close">×</button>
+    <h3 data-i18n="rent.title">Rent this bike</h3>
+    <div class="rent-summary" id="rent-summary"></div>
+    <form id="form-rent">
+      <label><span data-i18n="label.startTime">Start time</span>
+        <input type="datetime-local" name="startTime" required>
+      </label>
+      <label><span data-i18n="label.durationHours">Duration (hours)</span>
+        <input type="number" name="duration" min="1" max="24" value="1" required inputmode="numeric">
+      </label>
+      <div class="cost-line"><span data-i18n="rent.total">Total cost:</span> <strong id="rent-total">₱0</strong></div>
+
+      <fieldset class="pay-fieldset">
+        <legend data-i18n="rent.method">Payment method</legend>
+        <label class="pay-option"><input type="radio" name="payMethod" value="GCash" checked> <span data-i18n="pay.gcashOnline">GCash (pay online now)</span></label>
+        <label class="pay-option"><input type="radio" name="payMethod" value="Cash"> <span data-i18n="pay.cashPickup">Cash (pay on pickup)</span></label>
+      </fieldset>
+
+      <div id="gcash-box" class="gcash-box">
+        <div class="qr-fake" aria-hidden="true">
+          <svg viewBox="0 0 100 100"><rect width="100" height="100" fill="#fff"/>
+            <g fill="#1B1F2A">
+              <rect x="6" y="6" width="24" height="24"/><rect x="70" y="6" width="24" height="24"/><rect x="6" y="70" width="24" height="24"/>
+              <rect x="12" y="12" width="12" height="12" fill="#fff"/><rect x="76" y="12" width="12" height="12" fill="#fff"/><rect x="12" y="76" width="12" height="12" fill="#fff"/>
+              <rect x="40" y="10" width="6" height="6"/><rect x="52" y="10" width="6" height="6"/><rect x="40" y="22" width="6" height="6"/><rect x="60" y="30" width="6" height="6"/>
+              <rect x="40" y="40" width="6" height="6"/><rect x="52" y="40" width="6" height="6"/><rect x="64" y="46" width="6" height="6"/><rect x="76" y="46" width="6" height="6"/>
+              <rect x="40" y="58" width="6" height="6"/><rect x="52" y="64" width="6" height="6"/><rect x="64" y="58" width="6" height="6"/><rect x="82" y="64" width="6" height="6"/>
+              <rect x="40" y="76" width="6" height="6"/><rect x="52" y="82" width="6" height="6"/><rect x="64" y="76" width="6" height="6"/>
+            </g></svg>
+        </div>
+        <div class="gcash-info">
+          <p data-i18n="pay.gcashHint">Scan in your GCash app, then paste your reference number below.</p>
+          <label><span data-i18n="label.gcashRef">GCash reference number</span>
+            <input type="text" name="reference" placeholder="e.g. 1029384756" data-i18n-placeholder="ph.gcashRef" inputmode="numeric">
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" data-i18n="btn.confirmRental">Confirm rental</button>
+    </form>
+  </div>
+</div>
+
+<!-- ============ MODAL: BIKE FORM (ADMIN) ============ -->
+<div class="modal-backdrop" id="modal-bike">
+  <div class="modal">
+    <button class="modal-close" data-close-modal="modal-bike" aria-label="Close">×</button>
+    <h3 id="bike-modal-title">Add a bike</h3>
+    <form id="form-bike">
+      <input type="hidden" name="bikeId">
+      <label><span data-i18n="label.bikeName">Bike name</span>
+        <input type="text" name="name" required placeholder="e.g. Trailblazer 03" data-i18n-placeholder="ph.bikeName">
+      </label>
+      <label><span data-i18n="label.type">Type</span>
+        <select name="type" required>
+          <option value="City" data-i18n="type.City">City bike</option>
+          <option value="Mountain" data-i18n="type.Mountain">Mountain bike</option>
+          <option value="Road" data-i18n="type.Road">Road bike</option>
+          <option value="Electric" data-i18n="type.Electric">Electric bike</option>
+          <option value="Folding" data-i18n="type.Folding">Folding bike</option>
+        </select>
+      </label>
+      <label><span data-i18n="label.pricePerHour">Price per hour (₱)</span>
+        <input type="number" name="price" min="1" step="1" required inputmode="numeric">
+      </label>
+      <label><span data-i18n="label.status">Status</span>
+        <select name="status">
+          <option value="Available" data-i18n="status.Available">Available</option>
+          <option value="Unavailable" data-i18n="status.Unavailable">Unavailable</option>
+        </select>
+      </label>
+      <label><span data-i18n="label.photo">Photo</span>
+        <input type="file" name="image" accept="image/*">
+      </label>
+      <img id="bike-image-preview" class="image-preview hidden" alt="Preview" data-i18n-alt="alt.preview">
+      <button type="submit" class="btn btn-primary btn-block" data-i18n="btn.saveBike">Save bike</button>
+    </form>
+  </div>
+</div>
+
+<script src="js/i18n.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/client.js"></script>
+<script src="js/admin.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

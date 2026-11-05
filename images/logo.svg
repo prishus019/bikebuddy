@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200"><defs><linearGradient id="bbG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFC145"/><stop offset="1" stop-color="#1FA97D"/></linearGradient>
+<linearGradient id="bbF" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFD36E"/><stop offset="1" stop-color="#FFB11F"/></linearGradient></defs><g stroke="#FFC145" stroke-width="5" stroke-linecap="round" fill="none">
+<path d="M4 82h16" opacity=".95"/><path d="M0 104h22" opacity=".6"/><path d="M6 126h14" opacity=".95"/></g>
+<path d="M120 8L212 58V142L120 192L28 142V58Z" fill="#10131A" stroke="url(#bbG)" stroke-width="7" stroke-linejoin="round"/>
+<path d="M120 22L200 65.5V134.5L120 178L40 134.5V65.5Z" fill="none" stroke="#fff" stroke-opacity=".10" stroke-width="2"/>
+<path d="M126 26L105 54H118L111 69L136 41H123Z" fill="#1FA97D"/>
+<g transform="translate(78 118)"><g>
+<circle r="25" fill="none" stroke="#F5F6F1" stroke-width="6"/>
+<g stroke="#F5F6F1" stroke-opacity=".6" stroke-width="1.8" stroke-linecap="round"><path d="M-22 0H22M0 -22V22M-15.5 -15.5L15.5 15.5M15.5 -15.5L-15.5 15.5"/></g>
+<circle r="4.5" fill="#FFC145"/></g></g><g transform="translate(162 118)"><g>
+<circle r="25" fill="none" stroke="#F5F6F1" stroke-width="6"/>
+<g stroke="#F5F6F1" stroke-opacity=".6" stroke-width="1.8" stroke-linecap="round"><path d="M-22 0H22M0 -22V22M-15.5 -15.5L15.5 15.5M15.5 -15.5L-15.5 15.5"/></g>
+<circle r="4.5" fill="#FFC145"/></g></g>
+<g fill="none" stroke="url(#bbF)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+<path d="M78 118L118 118L106 84Z"/><path d="M106 84H146L118 118"/><path d="M146 84L162 118"/>
+<path d="M144 74H157"/><path d="M146 84L144 74"/><path d="M96 78H114"/></g>
+<circle cx="118" cy="118" r="7" fill="#10131A" stroke="#FFC145" stroke-width="3"/></svg>
